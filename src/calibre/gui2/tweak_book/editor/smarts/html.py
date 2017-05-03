@@ -311,7 +311,7 @@ class Smarts(NullSmarts):
             Smarts.self_closing_pat = re.compile(r'/\s*>')
             Smarts.complete_attr_pat = re.compile(r'''([a-zA-Z0-9_-]+)\s*=\s*(?:'([^']*)|"([^"]*))$''')
         NullSmarts.__init__(self, *args, **kwargs)
-        self.last_matched_tag = None
+        self.last_matched_tag = self.last_matched_closing_tag = None
 
     def get_extra_selections(self, editor):
         ans = []
@@ -332,12 +332,23 @@ class Smarts(NullSmarts):
         c = editor.textCursor()
         block, offset = c.block(), c.positionInBlock()
         tag = self.last_matched_tag = find_closest_containing_tag(block, offset, max_tags=2000)
+        self.last_matched_closing_tag = None
         if tag is not None:
             add_tag(tag)
-            tag = find_closing_tag(tag, max_tags=4000)
+            tag = self.last_matched_closing_tag = find_closing_tag(tag, max_tags=4000)
             if tag is not None:
                 add_tag(tag)
         return ans
+
+    def jump_to_enclosing_tag(self, editor, start=True):
+        editor.highlighter.join()
+        tag = self.last_matched_tag if start else self.last_matched_closing_tag
+        if tag is None:
+            return False
+        c = editor.textCursor()
+        c.setPosition(tag.start_block.position() + tag.start_offset + (1 if start else 2))
+        editor.setTextCursor(c)
+        return True
 
     def rename_block_tag(self, editor, new_name):
         editor.highlighter.join()
@@ -436,7 +447,7 @@ class Smarts(NullSmarts):
 
     def cursor_position_with_sourceline(self, cursor, for_position_sync=True, use_matched_tag=True):
         ''' Return the tag just before the current cursor as a source line
-        number and a list of tags defined on that line upto and including the
+        number and a list of tags defined on that line up to and including the
         containing tag. If ``for_position_sync`` is False then the tag
         *containing* the cursor is returned instead of the tag just before the
         cursor. Note that finding the containing tag is expensive, so
@@ -620,6 +631,12 @@ class Smarts(NullSmarts):
 
         if key == Qt.Key_Backspace and smart_backspace(editor, ev):
             return True
+
+        if key in (Qt.Key_BraceLeft, Qt.Key_BraceRight):
+            mods = ev.modifiers()
+            if int(mods & Qt.ControlModifier):
+                if self.jump_to_enclosing_tag(editor, key == Qt.Key_BraceLeft):
+                    return True
 
         return False
 

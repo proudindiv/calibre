@@ -87,6 +87,8 @@ class PreserveMIMEDefaults(object):
                         raise
 
 # Uninstall script {{{
+
+
 UNINSTALL = '''\
 #!{python}
 from __future__ import print_function, unicode_literals
@@ -156,7 +158,7 @@ for f in mr:
 
 print ()
 
-if mimetype_icons and raw_input('Remove the ebook format icons? [y/n]:').lower() in ['', 'y']:
+if mimetype_icons and raw_input('Remove the e-book format icons? [y/n]:').lower() in ['', 'y']:
     for i, (name, size) in enumerate(mimetype_icons):
         remove_icon('mimetypes', name, size, update=i == len(mimetype_icons) - 1)
 '''
@@ -559,7 +561,7 @@ def write_completion(bash_comp_dest, zsh):
             '--exec-file':['py', 'recipe'],
             '--add-simple-plugin':['py'],
             '--inspect-mobi':['mobi', 'azw', 'azw3'],
-            '--viewer':list(available_input_formats()),
+            '--viewer':sorted(available_input_formats()),
         })
         f.write(textwrap.dedent('''
         _ebook_device_ls()
@@ -932,6 +934,7 @@ def opts_and_words(name, op, words, takes_files=False):
 }
 complete -F _'''%(opts, words) + fname + ' ' + name +"\n\n").encode('utf-8')
 
+
 pics = {'jpg', 'jpeg', 'gif', 'png', 'bmp'}
 
 
@@ -951,7 +954,7 @@ def opts_and_exts(name, op, exts, cover_opts=('--cover',), opf_opts=(),
     extras = []
     for eopts, eexts in ((cover_opts, "${pics}"), (opf_opts, "'@(opf)'")):
         for opt in eopts:
-            extras.append(special_exts_template%(opt, eexts))
+            extras.append(special_exts_template%(opt, sorted(eexts)))
     extras = '\n'.join(extras)
 
     return '_'+fname+'()'+\
@@ -982,7 +985,7 @@ def opts_and_exts(name, op, exts, cover_opts=('--cover',), opf_opts=(),
 
 }
 complete -o filenames -F _'''%dict(pics=spics,
-    opts=opts, extras=extras, exts=exts) + fname + ' ' + name +"\n\n"
+    opts=opts, extras=extras, exts=sorted(exts)) + fname + ' ' + name +"\n\n"
 
 
 VIEWER = '''\
@@ -1047,7 +1050,7 @@ def get_appdata():
             'summary':_('The one stop solution to all your e-book needs'),
             'description':(
                 _('calibre is the one stop solution to all your e-book needs.'),
-                _('You can use calibre to catalog your books, fetch metadata for them automatically, convert them from and to all the various ebook formats, send them to your e-book reader devices, read the books on your computer, edit the books in a dedicated e-book editor and even make them available over the network with the built-in content server. You can also download news and periodicals in e-book format from over a thousand different news and magazine websites.')  # noqa
+                _('You can use calibre to catalog your books, fetch metadata for them automatically, convert them from and to all the various e-book formats, send them to your e-book reader devices, read the books on your computer, edit the books in a dedicated e-book editor and even make them available over the network with the built-in Content server. You can also download news and periodicals in e-book format from over a thousand different news and magazine websites.')  # noqa
             ),
             'screenshots':(
                 (1408, 792, 'https://lh4.googleusercontent.com/-bNE1hc_3pIc/UvHLwKPGBPI/AAAAAAAAASA/8oavs_c6xoU/w1408-h792-no/main-default.png',),
@@ -1141,11 +1144,10 @@ def cli_index_strings():
         'On OS X, the command line tools are inside the calibre bundle, for example,'
     ' if you installed calibre in :file:`/Applications` the command line tools'
     ' are in :file:`/Applications/calibre.app/Contents/console.app/Contents/MacOS/`.'), _(
-        'Documented Commands'), _('Undocumented Commands'), _(
+        'Documented commands'), _('Undocumented commands'), _(
         'You can see usage for undocumented commands by executing them without arguments in a terminal.'), _(
-            'Change Language')
+            'Change language')
 
 
 if __name__ == '__main__':
     sys.exit(main())
-

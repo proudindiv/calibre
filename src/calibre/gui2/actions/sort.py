@@ -28,7 +28,7 @@ class SortAction(QAction):
 class SortByAction(InterfaceAction):
 
     name = 'Sort By'
-    action_spec = (_('Sort By'), 'arrow-up.png', _('Sort the list of books'), None)
+    action_spec = (_('Sort by'), 'arrow-up.png', _('Sort the list of books'), None)
     action_type = 'current'
     popup_type = QToolButton.InstantPopup
     action_add_menu = True
@@ -38,6 +38,7 @@ class SortByAction(InterfaceAction):
 
     def genesis(self):
         self.sorted_icon = QIcon(I('ok.png'))
+        self.qaction.menu().aboutToShow.connect(self.update_menu)
 
     def location_selected(self, loc):
         self.qaction.setEnabled(loc == 'library')
@@ -76,5 +77,3 @@ class SortByAction(InterfaceAction):
             self.gui.library_view.intelligent_sort(key, True)
         else:
             self.gui.library_view.sort_by_named_field(key, ascending)
-
-
